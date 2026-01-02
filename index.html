@@ -1,366 +1,371 @@
-import React, { useState, useEffect } from 'react';
-import { Check, X, Calendar, Dumbbell, Trophy, User } from 'lucide-react';
-
-const WorkoutTracker = () => {
-  const [completedDays, setCompletedDays] = useState({});
-  const [notes, setNotes] = useState({});
-  const [currentNote, setCurrentNote] = useState('');
-  const [selectedDay, setSelectedDay] = useState(null);
-
-  // Load data from storage on mount
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const completed = await window.storage.get('completed-days');
-        const savedNotes = await window.storage.get('workout-notes');
-        
-        if (completed?.value) {
-          setCompletedDays(JSON.parse(completed.value));
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30-Day Workout Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
-        if (savedNotes?.value) {
-          setNotes(JSON.parse(savedNotes.value));
-        }
-      } catch (error) {
-        console.log('No saved data found, starting fresh');
-      }
-    };
-    loadData();
-  }, []);
-
-  // Customized workout plan for 56kg, 5'5" person
-  // Focus: Building strength foundation, balanced progression, sustainable volume
-  const workoutPlan = {
-    1: { pushups: 5, squats: 20, plank: '20s', legRaises: 8, crunches: 10 },
-    2: { pushups: 6, squats: 25, plank: '25s', legRaises: 10, crunches: 12 },
-    3: { pushups: 7, squats: 30, plank: '30s', legRaises: 10, crunches: 15 },
-    4: { pushups: 8, squats: 30, plank: '30s', legRaises: 12, crunches: 15 },
-    5: { pushups: 8, squats: 35, plank: '35s', legRaises: 12, crunches: 18 },
-    6: { rest: true },
-    7: { pushups: 10, squats: 35, plank: '40s', legRaises: 15, crunches: 20 },
-    8: { pushups: 10, squats: 40, plank: '40s', legRaises: 15, crunches: 20 },
-    9: { pushups: 12, squats: 40, plank: '45s', legRaises: 15, crunches: 22 },
-    10: { pushups: 12, squats: 45, plank: '45s', legRaises: 18, crunches: 25 },
-    11: { pushups: 15, squats: 45, plank: '50s', legRaises: 18, crunches: 25 },
-    12: { rest: true },
-    13: { pushups: 15, squats: 50, plank: '50s', legRaises: 20, crunches: 28 },
-    14: { pushups: 18, squats: 50, plank: '55s', legRaises: 20, crunches: 30 },
-    15: { pushups: 18, squats: 55, plank: '60s', legRaises: 22, crunches: 30 },
-    16: { pushups: 20, squats: 55, plank: '60s', legRaises: 22, crunches: 35 },
-    17: { pushups: 20, squats: 60, plank: '60s', legRaises: 25, crunches: 35 },
-    18: { rest: true },
-    19: { pushups: 22, squats: 60, plank: '70s', legRaises: 25, crunches: 40 },
-    20: { pushups: 22, squats: 65, plank: '70s', legRaises: 28, crunches: 40 },
-    21: { pushups: 25, squats: 65, plank: '75s', legRaises: 28, crunches: 45 },
-    22: { pushups: 25, squats: 70, plank: '75s', legRaises: 30, crunches: 45 },
-    23: { pushups: 28, squats: 70, plank: '80s', legRaises: 30, crunches: 50 },
-    24: { rest: true },
-    25: { pushups: 28, squats: 75, plank: '80s', legRaises: 35, crunches: 50 },
-    26: { pushups: 30, squats: 75, plank: '90s', legRaises: 35, crunches: 55 },
-    27: { pushups: 30, squats: 80, plank: '90s', legRaises: 40, crunches: 55 },
-    28: { pushups: 35, squats: 80, plank: '90s', legRaises: 40, crunches: 60 },
-    29: { pushups: 35, squats: 85, plank: '100s', legRaises: 45, crunches: 60 },
-    30: { pushups: 40, squats: 90, plank: '120s', legRaises: 50, crunches: 70 }
-  };
-
-  const bicepWorkout = [
-    'Hammer Curls: 3 sets × 12-15 reps',
-    'Cross Body Hammer Curls: 3 sets × 10-12 reps per arm',
-    'Zottman Curls: 3 sets × 10-12 reps',
-    'Reverse Curls: 3 sets × 12-15 reps'
-  ];
-
-  const toggleDay = async (day) => {
-    const newCompleted = {
-      ...completedDays,
-      [day]: !completedDays[day]
-    };
-    setCompletedDays(newCompleted);
-    
-    try {
-      await window.storage.set('completed-days', JSON.stringify(newCompleted));
-    } catch (error) {
-      console.error('Failed to save:', error);
-    }
-  };
-
-  const saveNote = async (day) => {
-    if (!currentNote.trim()) return;
-    
-    const newNotes = {
-      ...notes,
-      [day]: currentNote
-    };
-    setNotes(newNotes);
-    
-    try {
-      await window.storage.set('workout-notes', JSON.stringify(newNotes));
-      setCurrentNote('');
-      setSelectedDay(null);
-    } catch (error) {
-      console.error('Failed to save note:', error);
-    }
-  };
-
-  const resetProgress = async () => {
-    if (window.confirm('Are you sure you want to reset all progress?')) {
-      setCompletedDays({});
-      setNotes({});
-      try {
-        await window.storage.delete('completed-days');
-        await window.storage.delete('workout-notes');
-      } catch (error) {
-        console.error('Failed to reset:', error);
-      }
-    }
-  };
-
-  const completedCount = Object.values(completedDays).filter(Boolean).length;
-  const progressPercent = Math.round((completedCount / 30) * 100);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <Dumbbell className="w-8 h-8 text-indigo-600" />
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">Your Custom 30-Day Challenge</h1>
-                <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
-                  <User className="w-4 h-4" />
-                  Personalized for: 56kg, 5'5" (167cm)
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={resetProgress}
-              className="px-4 py-2 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition"
-            >
-              Reset Progress
-            </button>
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="mb-4">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>Progress: {completedCount}/30 days</span>
-              <span>{progressPercent}%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-indigo-500 to-purple-600 h-4 transition-all duration-500"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-          </div>
-
-          {completedCount === 30 && (
-            <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 flex items-center gap-3">
-              <Trophy className="w-6 h-6 text-yellow-600" />
-              <p className="text-yellow-800 font-semibold">Congratulations! You completed the challenge! 🎉</p>
-            </div>
-          )}
-        </div>
-
-
-
-        {/* Bicep Workout Reference */}
-        <div className="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-bold text-indigo-900 mb-3 flex items-center gap-2">
-            <Dumbbell className="w-5 h-5" />
-            Add After Each Workout: Bicep Training (5kg dumbbells)
-          </h2>
-          <ul className="space-y-2">
-            {bicepWorkout.map((exercise, idx) => (
-              <li key={idx} className="text-indigo-800 flex items-center gap-2">
-                <span className="w-2 h-2 bg-indigo-600 rounded-full"></span>
-                {exercise}
-              </li>
-            ))}
-          </ul>
-          <p className="text-sm text-indigo-700 mt-3 italic">
-            💡 Tip: Focus on slow, controlled movements (2 sec up, 3 sec down) to maximize results with 5kg
-          </p>
-        </div>
-
-        {/* Workout Calendar */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {Object.keys(workoutPlan).map((day) => {
-            const dayNum = parseInt(day);
-            const workout = workoutPlan[dayNum];
-            const isCompleted = completedDays[dayNum];
-            const isRest = workout.rest;
-            
-            return (
-              <div
-                key={dayNum}
-                className={`rounded-lg p-4 shadow-md transition-all ${
-                  isCompleted
-                    ? 'bg-green-100 border-2 border-green-500'
-                    : isRest
-                    ? 'bg-purple-50 border-2 border-purple-300'
-                    : 'bg-white border-2 border-gray-200 hover:border-indigo-400'
-                }`}
-              >
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    Day {dayNum}
-                  </h3>
-                  <button
-                    onClick={() => toggleDay(dayNum)}
-                    className={`p-1 rounded-full transition ${
-                      isCompleted
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-200 text-gray-400 hover:bg-gray-300'
-                    }`}
-                  >
-                    {isCompleted ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}
-                  </button>
-                </div>
-
-                {isRest ? (
-                  <div className="text-purple-700 font-semibold text-center py-6">
-                    REST DAY
-                    <p className="text-sm text-purple-600 mt-2">Recovery & muscle growth</p>
-                  </div>
-                ) : (
-                  <div className="space-y-1 text-sm text-gray-700">
-                    <p>Push-ups: <span className="font-semibold">{workout.pushups}</span></p>
-                    <p>Squats: <span className="font-semibold">{workout.squats}</span></p>
-                    <p>Plank: <span className="font-semibold">{workout.plank}</span></p>
-                    <p>Leg Raises: <span className="font-semibold">{workout.legRaises}</span></p>
-                    <p>Crunches: <span className="font-semibold">{workout.crunches}</span></p>
-                  </div>
-                )}
-
-                {/* Notes Section */}
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                  {notes[dayNum] ? (
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="max-w-6xl mx-auto p-4 md:p-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-4">
+                <div class="flex items-center gap-3">
+                    <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path>
+                    </svg>
                     <div>
-                      <p className="text-xs text-gray-600 italic mb-1">"{notes[dayNum]}"</p>
-                      <button
-                        onClick={() => {
-                          setSelectedDay(dayNum);
-                          setCurrentNote(notes[dayNum]);
-                        }}
-                        className="text-xs text-indigo-600 hover:underline"
-                      >
-                        Edit note
-                      </button>
+                        <h1 class="text-3xl font-bold text-gray-800">Your Custom 30-Day Challenge</h1>
+                        <p class="text-sm text-gray-600 flex items-center gap-2 mt-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            Personalized for: 56kg, 5'5" (167cm)
+                        </p>
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => setSelectedDay(dayNum)}
-                      className="text-xs text-gray-500 hover:text-indigo-600"
-                    >
-                      + Add note
-                    </button>
-                  )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Note Modal */}
-        {selectedDay && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-xl font-bold mb-4">Add Note for Day {selectedDay}</h3>
-              <textarea
-                value={currentNote}
-                onChange={(e) => setCurrentNote(e.target.value)}
-                placeholder="How did it go? Any adjustments needed?"
-                className="w-full border-2 border-gray-300 rounded-lg p-3 mb-4 h-32 focus:border-indigo-500 focus:outline-none"
-              />
-              <div className="flex gap-3">
-                <button
-                  onClick={() => saveNote(selectedDay)}
-                  className="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
-                >
-                  Save Note
+                <button onclick="resetProgress()" class="px-4 py-2 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition">
+                    Reset Progress
                 </button>
-                <button
-                  onClick={() => {
-                    setSelectedDay(null);
-                    setCurrentNote('');
-                  }}
-                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition"
-                >
-                  Cancel
-                </button>
-              </div>
             </div>
-          </div>
-        )}
+            
+            <!-- Progress Bar -->
+            <div class="mb-4">
+                <div class="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Progress: <span id="completed-count">0</span>/30 days</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                    <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-600 h-4 transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
 
-        {/* Night Workout Schedule */}
-        <div className="bg-gradient-to-br from-indigo-900 to-purple-900 text-white rounded-lg shadow-lg p-6 mt-6">
-          <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            🌙 Your Optimal Night Workout Schedule
-          </h3>
-          <div className="space-y-4">
-            <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <p className="font-bold text-lg mb-1">8:00-8:15 PM - Start workout</p>
-              <p className="text-indigo-200 text-sm">• Warm up (jumping jacks, arm circles)</p>
+            <div id="congrats-message" class="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 hidden items-center gap-3">
+                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                </svg>
+                <p class="text-yellow-800 font-semibold">Congratulations! You completed the challenge! 🎉</p>
             </div>
-            <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <p className="font-bold text-lg mb-1">8:15-8:45 PM - Main workout</p>
-              <p className="text-indigo-200 text-sm">• Do your daily challenge exercises</p>
-              <p className="text-indigo-200 text-sm">• Add the 4 bicep exercises after</p>
-            </div>
-            <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <p className="font-bold text-lg mb-1">8:45-9:00 PM - Cool down & stretch</p>
-              <p className="text-indigo-200 text-sm">• Light stretching (VERY IMPORTANT)</p>
-              <p className="text-indigo-200 text-sm">• Deep breathing</p>
-            </div>
-            <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <p className="font-bold text-lg mb-1">9:00-9:15 PM - Shower</p>
-              <p className="text-indigo-200 text-sm">• Lukewarm water to help body cool down</p>
-            </div>
-            <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <p className="font-bold text-lg mb-1">9:15-9:30 PM - Post-workout meal</p>
-              <p className="text-indigo-200 text-sm">• Protein + light carbs (eggs, chicken, rice, banana)</p>
-            </div>
-            <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <p className="font-bold text-lg mb-1">9:30-11:00 PM - Wind down time</p>
-              <p className="text-indigo-200 text-sm">• Relax, watch shows, light activities</p>
-              <p className="text-indigo-200 text-sm">• This 1.5-2 hour gap is perfect!</p>
-            </div>
-            <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <p className="font-bold text-lg mb-1">11:00 PM-12:00 AM - Sleep time</p>
-              <p className="text-indigo-200 text-sm">💤 Rest and recover for tomorrow's workout</p>
-            </div>
-          </div>
         </div>
 
-        {/* Tips Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">💪 Your Training Tips</h3>
-          <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
-            <div>
-              <h4 className="font-semibold text-indigo-600 mb-2">For Push-ups:</h4>
-              <p>If regular push-ups are too hard, do them on your knees. Focus on form over quantity.</p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-indigo-600 mb-2">For Planks:</h4>
-              <p>Keep your body straight, core tight. Break into 2-3 sets if needed (e.g., 30s = 3×10s).</p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-indigo-600 mb-2">For Leg Raises:</h4>
-              <p>Lie on back, keep legs straight, raise to 90°. Bend knees if it's too difficult.</p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-indigo-600 mb-2">Nutrition:</h4>
-              <p>Eat 90-110g protein daily (1.6-2g per kg). Stay hydrated with 2-3L water.</p>
-            </div>
-          </div>
+        <!-- Bicep Workout Reference -->
+        <div class="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-bold text-indigo-900 mb-3 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path>
+                </svg>
+                Add After Each Workout: Bicep Training (5kg dumbbells)
+            </h2>
+            <ul class="space-y-2">
+                <li class="text-indigo-800 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-indigo-600 rounded-full"></span>
+                    Hammer Curls: 3 sets × 12-15 reps
+                </li>
+                <li class="text-indigo-800 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-indigo-600 rounded-full"></span>
+                    Cross Body Hammer Curls: 3 sets × 10-12 reps per arm
+                </li>
+                <li class="text-indigo-800 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-indigo-600 rounded-full"></span>
+                    Zottman Curls: 3 sets × 10-12 reps
+                </li>
+                <li class="text-indigo-800 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-indigo-600 rounded-full"></span>
+                    Reverse Curls: 3 sets × 12-15 reps
+                </li>
+            </ul>
+            <p class="text-sm text-indigo-700 mt-3 italic">
+                💡 Tip: Focus on slow, controlled movements (2 sec up, 3 sec down) to maximize results with 5kg
+            </p>
         </div>
-      </div>
+
+        <!-- Night Workout Schedule -->
+        <div class="bg-gradient-to-br from-indigo-900 to-purple-900 text-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                🌙 Your Optimal Night Workout Schedule
+            </h3>
+            <div class="space-y-4">
+                <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                    <p class="font-bold text-lg mb-1">8:00-8:15 PM - Start workout</p>
+                    <p class="text-indigo-200 text-sm">• Warm up (jumping jacks, arm circles)</p>
+                </div>
+                <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                    <p class="font-bold text-lg mb-1">8:15-8:45 PM - Main workout</p>
+                    <p class="text-indigo-200 text-sm">• Do your daily challenge exercises</p>
+                    <p class="text-indigo-200 text-sm">• Add the 4 bicep exercises after</p>
+                </div>
+                <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                    <p class="font-bold text-lg mb-1">8:45-9:00 PM - Cool down & stretch</p>
+                    <p class="text-indigo-200 text-sm">• Light stretching (VERY IMPORTANT)</p>
+                    <p class="text-indigo-200 text-sm">• Deep breathing</p>
+                </div>
+                <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                    <p class="font-bold text-lg mb-1">9:00-9:15 PM - Shower</p>
+                    <p class="text-indigo-200 text-sm">• Lukewarm water to help body cool down</p>
+                </div>
+                <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                    <p class="font-bold text-lg mb-1">9:15-9:30 PM - Post-workout meal</p>
+                    <p class="text-indigo-200 text-sm">• Protein + light carbs (eggs, chicken, rice, banana)</p>
+                </div>
+                <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                    <p class="font-bold text-lg mb-1">9:30-11:00 PM - Wind down time</p>
+                    <p class="text-indigo-200 text-sm">• Relax, watch shows, light activities</p>
+                    <p class="text-indigo-200 text-sm">• This 1.5-2 hour gap is perfect!</p>
+                </div>
+                <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                    <p class="font-bold text-lg mb-1">11:00 PM-12:00 AM - Sleep time</p>
+                    <p class="text-indigo-200 text-sm">💤 Rest and recover for tomorrow's workout</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workout Calendar -->
+        <div id="workout-calendar" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+            <!-- Days will be generated by JavaScript -->
+        </div>
+
+        <!-- Tips Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">💪 Your Training Tips</h3>
+            <div class="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
+                <div>
+                    <h4 class="font-semibold text-indigo-600 mb-2">For Push-ups:</h4>
+                    <p>If regular push-ups are too hard, do them on your knees. Focus on form over quantity.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-indigo-600 mb-2">For Planks:</h4>
+                    <p>Keep your body straight, core tight. Break into 2-3 sets if needed (e.g., 30s = 3×10s).</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-indigo-600 mb-2">For Leg Raises:</h4>
+                    <p>Lie on back, keep legs straight, raise to 90°. Bend knees if it's too difficult.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-indigo-600 mb-2">Nutrition:</h4>
+                    <p>Eat 90-110g protein daily (1.6-2g per kg). Stay hydrated with 2-3L water.</p>
+                </div>
+            </div>
+        </div>
     </div>
-  );
-};
 
-export default WorkoutTracker;
+    <!-- Note Modal -->
+    <div id="note-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 class="text-xl font-bold mb-4">Add Note for Day <span id="modal-day"></span></h3>
+            <textarea id="note-input" placeholder="How did it go? Any adjustments needed?" class="w-full border-2 border-gray-300 rounded-lg p-3 mb-4 h-32 focus:border-indigo-500 focus:outline-none"></textarea>
+            <div class="flex gap-3">
+                <button onclick="saveNote()" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition">
+                    Save Note
+                </button>
+                <button onclick="closeModal()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const workoutPlan = {
+            1: { pushups: 5, squats: 20, plank: '20s', legRaises: 8, crunches: 10 },
+            2: { pushups: 6, squats: 25, plank: '25s', legRaises: 10, crunches: 12 },
+            3: { pushups: 7, squats: 30, plank: '30s', legRaises: 10, crunches: 15 },
+            4: { pushups: 8, squats: 30, plank: '30s', legRaises: 12, crunches: 15 },
+            5: { pushups: 8, squats: 35, plank: '35s', legRaises: 12, crunches: 18 },
+            6: { rest: true },
+            7: { pushups: 10, squats: 35, plank: '40s', legRaises: 15, crunches: 20 },
+            8: { pushups: 10, squats: 40, plank: '40s', legRaises: 15, crunches: 20 },
+            9: { pushups: 12, squats: 40, plank: '45s', legRaises: 15, crunches: 22 },
+            10: { pushups: 12, squats: 45, plank: '45s', legRaises: 18, crunches: 25 },
+            11: { pushups: 15, squats: 45, plank: '50s', legRaises: 18, crunches: 25 },
+            12: { rest: true },
+            13: { pushups: 15, squats: 50, plank: '50s', legRaises: 20, crunches: 28 },
+            14: { pushups: 18, squats: 50, plank: '55s', legRaises: 20, crunches: 30 },
+            15: { pushups: 18, squats: 55, plank: '60s', legRaises: 22, crunches: 30 },
+            16: { pushups: 20, squats: 55, plank: '60s', legRaises: 22, crunches: 35 },
+            17: { pushups: 20, squats: 60, plank: '60s', legRaises: 25, crunches: 35 },
+            18: { rest: true },
+            19: { pushups: 22, squats: 60, plank: '70s', legRaises: 25, crunches: 40 },
+            20: { pushups: 22, squats: 65, plank: '70s', legRaises: 28, crunches: 40 },
+            21: { pushups: 25, squats: 65, plank: '75s', legRaises: 28, crunches: 45 },
+            22: { pushups: 25, squats: 70, plank: '75s', legRaises: 30, crunches: 45 },
+            23: { pushups: 28, squats: 70, plank: '80s', legRaises: 30, crunches: 50 },
+            24: { rest: true },
+            25: { pushups: 28, squats: 75, plank: '80s', legRaises: 35, crunches: 50 },
+            26: { pushups: 30, squats: 75, plank: '90s', legRaises: 35, crunches: 55 },
+            27: { pushups: 30, squats: 80, plank: '90s', legRaises: 40, crunches: 55 },
+            28: { pushups: 35, squats: 80, plank: '90s', legRaises: 40, crunches: 60 },
+            29: { pushups: 35, squats: 85, plank: '100s', legRaises: 45, crunches: 60 },
+            30: { pushups: 40, squats: 90, plank: '120s', legRaises: 50, crunches: 70 }
+        };
+
+        let completedDays = {};
+        let notes = {};
+        let selectedDay = null;
+
+        // Load data from localStorage
+        function loadData() {
+            const savedCompleted = localStorage.getItem('completedDays');
+            const savedNotes = localStorage.getItem('workoutNotes');
+            
+            if (savedCompleted) completedDays = JSON.parse(savedCompleted);
+            if (savedNotes) notes = JSON.parse(savedNotes);
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('completedDays', JSON.stringify(completedDays));
+            localStorage.setItem('workoutNotes', JSON.stringify(notes));
+        }
+
+        // Toggle day completion
+        function toggleDay(day) {
+            completedDays[day] = !completedDays[day];
+            saveData();
+            renderCalendar();
+            updateProgress();
+        }
+
+        // Open note modal
+        function openNoteModal(day) {
+            selectedDay = day;
+            document.getElementById('modal-day').textContent = day;
+            document.getElementById('note-input').value = notes[day] || '';
+            document.getElementById('note-modal').classList.remove('hidden');
+            document.getElementById('note-modal').classList.add('flex');
+        }
+
+        // Close note modal
+        function closeModal() {
+            selectedDay = null;
+            document.getElementById('note-input').value = '';
+            document.getElementById('note-modal').classList.add('hidden');
+            document.getElementById('note-modal').classList.remove('flex');
+        }
+
+        // Save note
+        function saveNote() {
+            const noteText = document.getElementById('note-input').value.trim();
+            if (noteText && selectedDay) {
+                notes[selectedDay] = noteText;
+                saveData();
+                renderCalendar();
+            }
+            closeModal();
+        }
+
+        // Reset progress
+        function resetProgress() {
+            if (confirm('Are you sure you want to reset all progress?')) {
+                completedDays = {};
+                notes = {};
+                localStorage.removeItem('completedDays');
+                localStorage.removeItem('workoutNotes');
+                renderCalendar();
+                updateProgress();
+            }
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const completedCount = Object.values(completedDays).filter(Boolean).length;
+            const progressPercent = Math.round((completedCount / 30) * 100);
+            
+            document.getElementById('completed-count').textContent = completedCount;
+            document.getElementById('progress-percent').textContent = progressPercent + '%';
+            document.getElementById('progress-bar').style.width = progressPercent + '%';
+            
+            if (completedCount === 30) {
+                document.getElementById('congrats-message').classList.remove('hidden');
+                document.getElementById('congrats-message').classList.add('flex');
+            } else {
+                document.getElementById('congrats-message').classList.add('hidden');
+                document.getElementById('congrats-message').classList.remove('flex');
+            }
+        }
+
+        // Render workout calendar
+        function renderCalendar() {
+            const calendar = document.getElementById('workout-calendar');
+            calendar.innerHTML = '';
+            
+            for (let day = 1; day <= 30; day++) {
+                const workout = workoutPlan[day];
+                const isCompleted = completedDays[day];
+                const isRest = workout.rest;
+                const hasNote = notes[day];
+                
+                const dayCard = document.createElement('div');
+                dayCard.className = `rounded-lg p-4 shadow-md transition-all ${
+                    isCompleted
+                        ? 'bg-green-100 border-2 border-green-500'
+                        : isRest
+                        ? 'bg-purple-50 border-2 border-purple-300'
+                        : 'bg-white border-2 border-gray-200 hover:border-indigo-400'
+                }`;
+                
+                dayCard.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Day ${day}
+                        </h3>
+                        <button onclick="toggleDay(${day})" class="p-1 rounded-full transition ${
+                            isCompleted
+                                ? 'bg-green-500 text-white'
+                                : 'bg-gray-200 text-gray-400 hover:bg-gray-300'
+                        }">
+                            ${isCompleted 
+                                ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+                                : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>'
+                            }
+                        </button>
+                    </div>
+                    
+                    ${isRest 
+                        ? `<div class="text-purple-700 font-semibold text-center py-6">
+                            REST DAY
+                            <p class="text-sm text-purple-600 mt-2">Recovery & muscle growth</p>
+                           </div>`
+                        : `<div class="space-y-1 text-sm text-gray-700">
+                            <p>Push-ups: <span class="font-semibold">${workout.pushups}</span></p>
+                            <p>Squats: <span class="font-semibold">${workout.squats}</span></p>
+                            <p>Plank: <span class="font-semibold">${workout.plank}</span></p>
+                            <p>Leg Raises: <span class="font-semibold">${workout.legRaises}</span></p>
+                            <p>Crunches: <span class="font-semibold">${workout.crunches}</span></p>
+                           </div>`
+                    }
+                    
+                    <div class="mt-3 pt-3 border-t border-gray-200">
+                        ${hasNote
+                            ? `<div>
+                                <p class="text-xs text-gray-600 italic mb-1">"${notes[day]}"</p>
+                                <button onclick="openNoteModal(${day})" class="text-xs text-indigo-600 hover:underline">
+                                    Edit note
+                                </button>
+                               </div>`
+                            : `<button onclick="openNoteModal(${day})" class="text-xs text-gray-500 hover:text-indigo-600">
+                                + Add note
+                               </button>`
+                        }
+                    </div>
+                `;
+                
+                calendar.appendChild(dayCard);
+            }
+        }
+
+        // Initialize app
+        loadData();
+        renderCalendar();
+        updateProgress();
+    </script>
+</body>
+</html>
